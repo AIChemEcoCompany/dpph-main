@@ -1,10 +1,7 @@
 import pandas as pd
-import psycopg2
 from psycopg2.pool import SimpleConnectionPool
 from concurrent.futures import ThreadPoolExecutor
 from contextlib import contextmanager
-from rdkit import Chem
-from psycopg2 import sql
 import os
 from typing import Literal
 from utils.get_marked import get_Hatom1, get_inner_ba12

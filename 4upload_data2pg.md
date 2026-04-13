@@ -1,14 +1,21 @@
-# copy smiles data to postgresql 
-create datatase nida;
-create extension rdkit;
-create schema dpph;
-create table dpph.avail_smiles(smiles TEXT,cansmiles TEXT, price float, source TEXT, mol mol, ac smallint, amw float);
-create table dpph.avail_smiles_1044(smiles TEXT, ac smallint, amw float, mol mol, is_463 smallint);
-\copy dpph.avail_smiles(smiles, cansmiles, price, source,  ac, amw) from '/PATH/data' CSV HEADER;
-alter table dpph.avail_smiles set mol = mol_from_smiles(smiles::cstring);
-\copy dpph.avail_smiles(smiles,  mol, ac, amw) from '/PATH/data' CSV HEADER;
-alter table dpph.avail_smiles_1044 set mol = mol_from_smiles(smiles::cstring);
+# Copy smiles data to postgresql 
+In postgresql database:
 
-#create index
-create index mol_index on dpph.avail_smiles using gist(mol);
-create index mol_index_1044 on dpph.avail_smiles_1044 using gist(mol);
+```SQL
+CREATE datatase bide_DB;
+CREATE extension rdkit;
+CREATE SCHEMA dpph;
+
+CREATE TABLE dpph.avail_smiles(smiles TEXT,cansmiles TEXT, price FLOAT, source TEXT, mol mol, ac SMALLINT, amw FLOAT);
+CREATE TABLE dpph.avail_smiles_1044(smiles TEXT, ac SMALLINT, amw FLOAT, mol mol, is_463 SMALLINT);
+
+-- copy raw data to sql
+\copy dpph.avail_smiles(smiles, cansmiles, price, source,  ac, amw) FROM 'PATH/data/avail_smiles_3w2' CSV HEADER;
+ALTER TABLE dpph.avail_smiles SET mol = mol_from_smiles(smiles::cstring);
+\copy dpph.avail_smiles(smiles,  mol, ac, amw) FROM 'PATH/data/avail_smiles_1044.sv' CSV HEADER;
+ALTER TABLE dpph.avail_smiles_1044 SET mol = mol_from_smiles(smiles::cstring);
+
+-- create index
+CREATE INDEX mol_index ON dpph.avail_smiles USING gist(mol);
+CREATE INDEX mol_index_1044 ON dpph.avail_smiles_1044 USING gist(mol);
+```

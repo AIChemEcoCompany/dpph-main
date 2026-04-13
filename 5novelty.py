@@ -1,6 +1,6 @@
 import pandas as pd
 import numpy as np
-from utils.get_fp import tanimoto_np, smol_to_fp, get_Mfp
+from utils.get_fp import tanimoto_np, get_Mfp
 from tqdm import tqdm
 import pickle
 from joblib import Parallel, delayed
