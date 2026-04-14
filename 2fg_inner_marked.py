@@ -257,7 +257,7 @@ if __name__ == '__main__':
     smarts = smarts.explode('smarts_inner_marked')
     smarts['smarts_marked_oxygen'] = smarts['smarts_inner_marked'].parallel_apply(add_bridge_to_Hatom)
     #smarts['canon_smarts'] = smarts['smarts_inner_marked'].parallel_apply(canon_smarts) 
-    print("官能团内断氢键数量:", len(smarts.drop_duplicates(subset=['smarts_marked_oxygen'])))
+    print("The number of hydrogen bonds broken within functional groups:", len(smarts.drop_duplicates(subset=['smarts_marked_oxygen'])))
 
     #save Hdata
     smarts.dropna(subset=['smarts_inner_marked']).to_csv('data/H_inner_marked.csv', index=False, sep='\t')
@@ -285,7 +285,7 @@ if __name__ == '__main__':
     
     smarts.drop_duplicates(inplace=True)
 
-    print("官能团内断键数量:", len(smarts.drop_duplicates(subset=['smarts_marked_oxygen'])))
+    print("The number of bond breakage within functional groups:", len(smarts.drop_duplicates(subset=['smarts_marked_oxygen'])))
 
     smarts.dropna(subset='smarts_marked').to_csv('data/inner_marked.csv',index=False,sep='\t')
 
