@@ -36,12 +36,12 @@ The analysis follows five sequential steps, each implemented as a standalone Pyt
 |  Step   | Script  | Purpose |
 |  ----  | ----  |  ----  |
 | 1  | 1preprocessing_data.py | Verify reaction SMILES/SMARTS, ensure correct atom mapping.
-| 2  | 2construct_fg.py | Define SMARTS patterns for functional groups of interest.
-| 3  | 2construct_fg.py | Define SMARTS patterns for functional groups of interest.
-| 4  | 2fg_inner_marked.py | Compute bonds broken/formed within functional groups.
+| 2  | 2construct_fg.py | Define SMARTS patterns for outside functional groups.
+| 3  | 2fg_inner_marked.py | Define SMARTS patterns for within functional groups.
+| 4  | 3get_broken.py | Compute bonds broken/formed during reactions, annotate with functional groups.
 | 5  | 4get_avail_mp.py | Load a compound inventory into PostgreSQL and match broken-bond substructures.
 | 6  | 5novelty.py | Identify and rank broken bonds that have not been seen before.
-| 7  | 6mapping_draw.py | Map out the entire set of functionalized bonds, the bonds of purchasable compounds, and the established chemical bonds onto a two-dimensional graph.
+| 6  | 6mapping_draw.py | Map out the entire set of functionalized bonds, the bonds of purchasable compounds, and the established chemical bonds onto a two-dimensional graph.
 
 A typical run executes all scripts in order.
 
