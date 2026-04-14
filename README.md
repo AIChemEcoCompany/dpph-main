@@ -41,7 +41,7 @@ The analysis follows five sequential steps, each implemented as a standalone Pyt
 | 4  | 3get_broken.py | Compute bonds broken/formed during reactions, annotate with functional groups.
 | 5  | 4get_avail_mp.py | Load a compound inventory into PostgreSQL and match broken-bond substructures.
 | 6  | 5novelty.py | Identify and rank broken bonds that have not been seen before.
-| 6  | 6mapping_draw.py | Map out the entire set of functionalized bonds, the bonds of purchasable compounds, and the established chemical bonds onto a two-dimensional graph.
+| 7  | 6mapping_draw.py | Map out the entire set of functionalized bonds, the bonds of purchasable compounds, and the established chemical bonds onto a two-dimensional graph.
 
 A typical run executes all scripts in order.
 
