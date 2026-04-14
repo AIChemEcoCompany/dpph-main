@@ -1,4 +1,4 @@
-# Copy smiles data to postgresql 
+# Copy SMILES data to postgresql 
 In postgresql database:
 
 ```SQL

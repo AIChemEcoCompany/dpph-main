@@ -510,7 +510,7 @@ if __name__ == "__main__":
     data[['inner_broken', 'inner_formed','outer_broken','outer_formed']] = data.parallel_apply(get, axis=1, result_type="expand")
     del data['confidence']
 
-    data.to_csv('result/dpph23_bf_result.csv',index=False)
+    data.to_csv('result/dpph_bf_result.csv',index=False)
     
     # data = pd.read_csv('dpph23_bf_res.csv')
     
