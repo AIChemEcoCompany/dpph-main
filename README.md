@@ -32,12 +32,12 @@ conda activate dpph
 
 
 ## Workflow Overview
-The analysis follows five sequential steps, each implemented as a standalone Python script:
+The analysis follows seven sequential steps, each implemented as a standalone Python script:
 |  Step   | Script  | Purpose |
 |  ----  | ----  |  ----  |
 | 1  | 1preprocessing_data.py | Verify reaction SMILES/SMARTS, ensure correct atom mapping.
 | 2  | 2construct_fg.py | Define SMARTS patterns for outside functional groups.
-| 3  | 2fg_inner_marked.py | Define SMARTS patterns for within functional groups.
+| 3  | 2fg_inner_marked.py | Define SMARTS patterns for inside functional groups.
 | 4  | 3get_broken.py | Compute bonds broken/formed during reactions, annotate with functional groups.
 | 5  | 4get_avail_mp.py | Load a compound inventory into PostgreSQL and match broken-bond substructures.
 | 6  | 5novelty.py | Identify and rank broken bonds that have not been seen before.
