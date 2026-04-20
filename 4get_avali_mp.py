@@ -4,7 +4,7 @@ from concurrent.futures import ThreadPoolExecutor
 from contextlib import contextmanager
 import os
 from typing import Literal
-from utils.get_marked import get_Hatom1, get_inner_ba12
+from utils.get_marked import get_Hatom1, get_inner_ba12,convert_implicit_H
 
 class DatabasePool:
     """Database connection pool management class"""
@@ -95,7 +95,9 @@ def uniform_format(df_:pd.DataFrame,type_ = 'H_inner', mol_source:Literal['3w2',
         H_inner['atom2'] = 'H'
         H_inner['fg1_fg2_marked'] = H_inner['smarts_inner_marked']
         H_inner['canon_smarts'] = H_inner['smarts_marked_oxygen']
-        H_inner = get_avail_mol_pool(H_inner, 'smarts',type_source= mol_source)
+        H_inner['smarts_add_H'] = H_inner['smarts_inner_marked'].apply(convert_implicit_H) #consider implicit H
+        H_inner = get_avail_mol_pool(H_inner, 'smarts_add_H',type_source= mol_source)
+        del H_inner['smarts_add_H']
 
         H_inner = H_inner[['fg1', 'fg2', 'fg1_fg2', 'fg1_fg2_marked', 'bond', 'atom1', 'atom2', 'canon_smarts','avail']]
         H_inner['type'] = 'Hinner'
