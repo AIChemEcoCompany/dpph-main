@@ -4,7 +4,7 @@ from concurrent.futures import ThreadPoolExecutor
 from contextlib import contextmanager
 import os
 from typing import Literal
-from utils.get_marked import get_Hatom1, get_inner_ba12,convert_implicit_H
+from utils.get_marked import get_Hatom1, get_inner_ba12, convert_implicit_H
 
 class DatabasePool:
     """Database connection pool management class"""
