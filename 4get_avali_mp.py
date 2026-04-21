@@ -83,9 +83,9 @@ def get_avail_mol_pool(df: pd.DataFrame, columns='fg1_fg2', max_workers=3, type_
 
 
 
-def uniform_format(df_:pd.DataFrame,type_ = 'H_inner', mol_source:Literal['3w2', '1044']='3w2'):
+def uniform_format(df_:pd.DataFrame,type_ = 'H_inner', mol_source:Literal['3w2', '1044']='3w2', not_consider_H = True):
     if type_ == 'H_inner':
-        H_inner = df_
+        H_inner = df_.copy()
         H_inner['fg1'] = H_inner['smarts']
         H_inner['fg2'] = 'H'
         H_inner['fg1_fg2'] = H_inner['smarts']
@@ -95,9 +95,12 @@ def uniform_format(df_:pd.DataFrame,type_ = 'H_inner', mol_source:Literal['3w2',
         H_inner['atom2'] = 'H'
         H_inner['fg1_fg2_marked'] = H_inner['smarts_inner_marked']
         H_inner['canon_smarts'] = H_inner['smarts_marked_oxygen']
-        H_inner['smarts_add_H'] = H_inner['smarts_inner_marked'].apply(convert_implicit_H) #consider implicit H
-        H_inner = get_avail_mol_pool(H_inner, 'smarts_add_H',type_source= mol_source)
-        del H_inner['smarts_add_H']
+        if not_consider_H:
+            H_inner = get_avail_mol_pool(H_inner, 'fg1_fg2_marked', type_source= mol_source)   #consider implicit H
+        else:
+            H_inner['smarts_add_H'] = H_inner['smarts_inner_marked'].apply(convert_implicit_H)
+            H_inner = get_avail_mol_pool(H_inner, 'smarts_add_H',type_source= mol_source)
+            del H_inner['smarts_add_H']
 
         H_inner = H_inner[['fg1', 'fg2', 'fg1_fg2', 'fg1_fg2_marked', 'bond', 'atom1', 'atom2', 'canon_smarts','avail']]
         H_inner['type'] = 'Hinner'
@@ -142,8 +145,9 @@ if __name__ == '__main__':
         inner = uniform_format(inner0.copy(), type_ = 'inner', mol_source=source )
         inner.to_csv(f'{save_path}/dpph_inner_matched_{source}.csv', index=False)
 
+        hinner_consider_H = uniform_format(H_inner0.copy(), type_ = 'H_inner', mol_source=source,not_consider_H=True) #不考虑氢
         #outer FG info        
-        inner_values = set(H_inner['fg1']) | set(fgs[0]) - set(H_inner0['smarts']) #.union(set(inner['fg2']))fg1 equal to fg2 #contain single atom
+        inner_values = set(hinner_consider_H['fg1']) | set(fgs[0]) - set(H_inner0['smarts']) #.union(set(inner['fg2']))fg1 equal to fg2 #contain single atom
         print('fg1:',len(inner_values))
         df_fg1_fg2 = df_fg1_fg20.copy()
         df_fg1_fg2 = df_fg1_fg2[df_fg1_fg2['fg1'].isin(inner_values) & df_fg1_fg2['fg2'].isin(inner_values)]
