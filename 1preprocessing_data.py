@@ -77,7 +77,13 @@ def main():
     del data['str_count']
     del data['valid']
 
-    print('The remaining data volume：', len(data))
+    print('The remaining data volume:', len(data))
+    # rp = data["rxn"].str.split(">>", expand=True)[1]
+    # data["p"] = rp.str.split(".",expand=False,regex=False)
+    # data = data.explode("p")
+    # data["rxn"] = data["rxn"].str.replace(r">>.*", "", regex=True) + ">>" + data["P"]
+    # del data["p"]
+
     data[[ 'smiles_am', 'confidence', 'broken_each_reactant_list', 'formed_each_product_list', 'all_bond_changed']] = data['rxn'].apply(get_broken_bond)
     #data = data[data['confidence'] >= CONFIDENCE]
 
