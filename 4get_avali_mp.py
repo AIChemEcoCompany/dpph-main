@@ -95,12 +95,12 @@ def uniform_format(df_:pd.DataFrame,type_ = 'H_inner', mol_source:Literal['3w2',
         H_inner['atom2'] = 'H'
         H_inner['fg1_fg2_marked'] = H_inner['smarts_inner_marked']
         H_inner['canon_smarts'] = H_inner['smarts_marked_oxygen']
-        if not_consider_H:
-            H_inner = get_avail_mol_pool(H_inner, 'fg1_fg2_marked', type_source= mol_source)   #consider implicit H
-        else:
-            H_inner['smarts_add_H'] = H_inner['smarts_inner_marked'].apply(convert_implicit_H)
-            H_inner = get_avail_mol_pool(H_inner, 'smarts_add_H',type_source= mol_source)
-            del H_inner['smarts_add_H']
+        # if not_consider_H:
+        H_inner = get_avail_mol_pool(H_inner, 'fg1_fg2_marked', type_source= mol_source)   #consider implicit H
+        # else:
+        #     H_inner['smarts_add_H'] = H_inner['smarts_inner_marked'].apply(convert_implicit_H)
+        #     H_inner = get_avail_mol_pool(H_inner, 'smarts_add_H',type_source= mol_source)
+        #     del H_inner['smarts_add_H']
 
         H_inner = H_inner[['fg1', 'fg2', 'fg1_fg2', 'fg1_fg2_marked', 'bond', 'atom1', 'atom2', 'canon_smarts','avail']]
         H_inner['type'] = 'Hinner'

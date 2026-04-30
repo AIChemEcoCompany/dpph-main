@@ -11,6 +11,7 @@ from tqdm import tqdm
 from rdcanon import canon_smarts
 from functools import lru_cache
 from utils.get_marked import get_Hatom1, get_inner_ba12
+import argparse
 
 FG_LIST = 'data/priority_fgs.txt'
 
@@ -491,7 +492,12 @@ def count_fg_freq_classify(df, broken='inner_broken', formed='inner_formed',
 
     
 if __name__ == "__main__":
-    print('After checking out, the starting calculation broke and formed bonds with the FG!')
+    parser = argparse.ArgumentParser(description='After checking out, the starting calculation broke and formed bonds with the FG!')
+    parser.add_argument('input_file', default='data/element_bf_checkout.xlsx',required=True)
+    parser.add_argument('output_file', default='result/dpph_bf_result.csv', required=True)
+    args = parser.parse_args()
+    
+    # print('After checking out, the starting calculation broke and formed bonds with the FG!')
 
     pandarallel.initialize(nb_workers = 16, progress_bar=True)
     def get(row:pd.Series):
@@ -503,24 +509,22 @@ if __name__ == "__main__":
         inner_broken, inner_formed, r_broken, r_formed = broken_fromed.get_fg_fg_broken()
         return  inner_broken, inner_formed, r_broken, r_formed
         
-    data = pd.read_excel('data/element_bf_checkout.xlsx')
+    data = pd.read_excel(args.input_file)
     data['broken_each_reactant_list'] = data['broken_each_reactant_list'].apply(eval)
     data['formed_each_product_list'] = data['formed_each_product_list'].apply(eval) 
     # data['smiles_am'] = data['smiles_am'].apply(mapping_deal)
     data[['inner_broken', 'inner_formed','outer_broken','outer_formed']] = data.parallel_apply(get, axis=1, result_type="expand")
-    del data['confidence']
+    # del data['confidence']
 
-    data.to_csv('result/dpph_bf_result.csv',index=False)
+    data.to_csv(args.outpt_file,index=False)
     
-    # data = pd.read_csv('dpph23_bf_res.csv')
-    
-    # # data = pd.read_csv('ab.csv',delimiter='\t')
-    # Calculate the frequency of bond breaking at the atomic level, both within and outside functional groups, save the file, and summarize the bond breaking.# 
-    count_fg_freq_classify(data,'inner_broken','inner_formed')
-    count_fg_freq_classify(data,'outer_broken','outer_formed')
+    if args.input_file != 'data/element_bf_checkout.xlsx':
+        # Calculate the frequency of bond breaking at the atomic level, both within and outside functional groups, save the file, and summarize the bond breaking.# 
+        count_fg_freq_classify(data,'inner_broken','inner_formed')
+        count_fg_freq_classify(data,'outer_broken','outer_formed')
 
-    data = pd.concat([pd.read_csv(f'result/{x}_broken_count.csv',delimiter='\t') for x in ['type4_construct_fg_fg','H_inner_marked','inner_marked']] )
-    del data['formed_freq']
-    data.to_csv('result/fg_count.csv',index=False)
+        data = pd.concat([pd.read_csv(f'result/{x}_broken_count.csv',delimiter='\t') for x in ['type4_construct_fg_fg','H_inner_marked','inner_marked']] )
+        del data['formed_freq']
+        data.to_csv('result/fg_count.csv',index=False)
 
-    print(f'data_count.csv saved in ./result! ')
+        print(f'data_count.csv saved in ./result! ')
