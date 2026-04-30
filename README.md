@@ -42,6 +42,7 @@ The analysis follows seven sequential steps, each implemented as a standalone Py
 | 5  | 4get_avail_mp.py | Load a compound inventory into PostgreSQL and match broken-bond substructures.
 | 6  | 5novelty.py | Identify and rank broken bonds that have not been seen before.
 | 7  | 6mapping_draw.py | Map out the entire set of functionalized bonds, the bonds of purchasable compounds, and the established chemical bonds onto a two-dimensional graph.
+| 8  | 7get_broken_modelling.py | Construct the bond-breaking space of purchasable compounds. The relevant modeling code is located in "result_modelling".
 
 A typical run executes all scripts in order.
 
