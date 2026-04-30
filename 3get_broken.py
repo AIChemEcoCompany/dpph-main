@@ -514,11 +514,11 @@ if __name__ == "__main__":
     data['formed_each_product_list'] = data['formed_each_product_list'].apply(eval) 
     # data['smiles_am'] = data['smiles_am'].apply(mapping_deal)
     data[['inner_broken', 'inner_formed','outer_broken','outer_formed']] = data.parallel_apply(get, axis=1, result_type="expand")
-    # del data['confidence']
 
     data.to_csv(args.outpt_file,index=False)
     
-    if args.input_file != 'data/element_bf_checkout.xlsx':
+    if args.input_file == 'data/element_bf_checkout.xlsx':
+        del data['confidence']
         # Calculate the frequency of bond breaking at the atomic level, both within and outside functional groups, save the file, and summarize the bond breaking.# 
         count_fg_freq_classify(data,'inner_broken','inner_formed')
         count_fg_freq_classify(data,'outer_broken','outer_formed')
