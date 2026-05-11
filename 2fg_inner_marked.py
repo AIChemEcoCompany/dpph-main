@@ -260,6 +260,7 @@ if __name__ == '__main__':
     print("The number of hydrogen bonds broken within functional groups:", len(smarts.drop_duplicates(subset=['smarts_marked_oxygen'])))
 
     #save Hdata
+    smarts.to_csv('data/H_inner_marked_contain_dup.csv', index=False, sep='\t')
     smarts.dropna(subset=['smarts_inner_marked']).to_csv('data/H_inner_marked.csv', index=False, sep='\t')
     
     smarts.drop(columns=['smarts_inner_marked','smarts_marked_oxygen'], inplace=True)
@@ -283,6 +284,7 @@ if __name__ == '__main__':
     smarts['smarts_marked_oxygen'] = smarts['smarts_marked'].parallel_apply(add_bridge_atom_to_each_bond)
     smarts = smarts.explode('smarts_marked_oxygen')
     
+    smarts.to_csv('data/inner_marked_contain_dup.csv',index=False,sep='\t')
     smarts.drop_duplicates(inplace=True)
 
     print("The number of bond breakage within functional groups:", len(smarts.drop_duplicates(subset=['smarts_marked_oxygen'])))
