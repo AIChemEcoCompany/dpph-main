@@ -263,7 +263,7 @@ if __name__ == '__main__':
 
     combined_df_3w2 = combined_df_3w2.sort_values('is_1044',ascending=False).drop_duplicates(subset='fg1_fg2_marked',keep='first')
     combined_df_3w2.drop(columns=['is_463'],inplace=True)
-    combined_df_3w2.drop_duplicates(subset=['canon_smarts','type']).to_csv('result2/represent_fg1_fg2_add_ele.csv',index=False) #
-    combined_df_3w2[combined_df_3w2['is_1044']].drop_duplicates(subset=['canon_smarts','type']).to_csv('result2/represent_fg1_fg2_1044_add_ele.csv',index=False)
+    combined_df_3w2.drop_duplicates(subset=['canon_smarts','type']).to_csv('result/represent_fg1_fg2.csv',index=False) #
+    combined_df_3w2[combined_df_3w2['is_1044']].drop_duplicates(subset=['canon_smarts','type']).to_csv('result/represent_fg1_fg2_1044.csv',index=False)
 
     print('The bond of 3w2 and 1044 are combined completed !')
