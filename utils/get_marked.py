@@ -3,6 +3,7 @@ import pandas as pd
 from rdcanon import canon_smarts
 
 def convert_implicit_H(smarts:str):
+    return smarts.replace(r':2', r';!H0:2')
     mol = Chem.MolFromSmarts(smarts)
     for atom in mol.GetAtoms():
         if atom.GetAtomMapNum() == 1:
@@ -21,6 +22,18 @@ def convert_implicit_H(smarts:str):
     if '!H0' not in mm:
         raise ValueError(smarts, 'add+implicit H error!')
     return mm
+
+def convert_H0(smarts:str, m_tag = 3)->str:
+    mol = Chem.MolFromSmarts(smarts)
+    for atom in mol.GetAtoms():
+        if atom.GetAtomMapNum() in [1, 2]:
+            raise ValueError(smarts, 'H0 must be marked :3')
+        if atom.GetAtomMapNum() == m_tag:
+            map_idx = atom.GetIdx()
+            break
+    smarts = smarts.replace(r':3', r';H0:3')
+
+    return smarts
 
 def get_Hatom1(smarts:str):
     s = Chem.MolFromSmarts(smarts)

@@ -53,7 +53,7 @@ def smol_to_fp(smarts:str, type_=Literal['fg1_fg2','inner','H_inner']):
     assert res.sum(), f'invalid fingerprint {smarts}'
     return res
 
-def get_Mfp(s_str:str, type_=Literal['fg1_fg2','inner','H_inner']):
+def get_Mfp(s_str:str, type_=Literal['fg1_fg2','inner','H_inner','ELE']):
     s = Chem.MolFromSmarts(s_str)
     s.UpdatePropertyCache(strict=False)
     Chem.FastFindRings(s)
@@ -61,6 +61,8 @@ def get_Mfp(s_str:str, type_=Literal['fg1_fg2','inner','H_inner']):
         atoms = [a.GetIdx() for a in s.GetAtoms() if a.GetAtomMapNum() in [1,2]]
     elif type_ == 'H_inner':
         atoms = [a.GetIdx() for a in s.GetAtoms() if a.GetAtomMapNum() == 2]
+    elif type_ == 'ELE':
+        atoms = [a.GetIdx() for a in s.GetAtoms() if a.GetAtomMapNum() == 3]
     fp = AllChem.GetMorganFingerprintAsBitVect(s, radius=2, fromAtoms=atoms, nBits=2048)
     res = np.array(fp,dtype=bool)
     assert res.sum(), f'invalid fingerprint {s_str}'
