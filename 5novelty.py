@@ -157,7 +157,7 @@ if __name__ =='__main__':
     #combined
     combined_df_novelty = pd.concat([df_fg1_fg2_novelty,H_inner_novelty, inner_novelty, ele_novelty])
     print(len(combined_df_novelty),'rest!')
-    combined_df_novelty.drop_duplicates(subset='canon_smarts',inplace=True)
+    combined_df_novelty.drop_duplicates(subset=['canon_smarts','type'],inplace=True)
     print('drop_duplicates',len(combined_df_novelty),'rest!')
 
     combined_df_novelty.drop(columns=['fp', 'broken_freq', 'formed_freq', 'rarity_raw', 'rarity_norm', 'max_sim'],inplace=True)
