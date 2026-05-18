@@ -3,6 +3,7 @@ from rdkit.Chem import rdchem
 from utils.connect_fg import Found
 import pandas as pd
 from rdcanon import canon_smarts
+from utils.marked_ele import create_fgs_with_ele
 import numpy as np
 from itertools import combinations_with_replacement
 from pandarallel import pandarallel
@@ -149,7 +150,7 @@ def add_bridge_atom_to_each_bond(smarts):
         return Chem.MolToSmarts(m)
     return np.nan
 
-def add_bridge_to_Hatom(smarts):
+def add_bridge_to_Hatom(smarts, mapNum=2, add_atomicNum=8):
     '''add TRIPLE and oxygen atom'''
     try:
         mol = Chem.MolFromSmarts(smarts)
@@ -159,10 +160,10 @@ def add_bridge_to_Hatom(smarts):
         return np.nan
     
     rwmol = Chem.RWMol(mol)
-    new_atom_idx = rwmol.AddAtom(Chem.Atom(8))# add new atom
+    new_atom_idx = rwmol.AddAtom(Chem.Atom(add_atomicNum))# add new atom
     global atom
     for atom in mol.GetAtoms():
-        if atom.GetAtomMapNum()==2:
+        if atom.GetAtomMapNum()==mapNum:
             # add bond between new atom and atom marked
             rwmol.AddBond(atom.GetIdx(), new_atom_idx, Chem.BondType.TRIPLE)
             break
@@ -228,7 +229,9 @@ def marked_inner_H(smarts):
         ress.append(res)
         atom.SetAtomMapNum(0)
     return ress
-    
+
+def marked_ele(smarts):
+    return create_fgs_with_ele(smarts)
 
 def test():
     s1 = '[#87]-[#6]([#6]-[#87])([#6])=[#8]'
@@ -291,4 +294,15 @@ if __name__ == '__main__':
 
     smarts.dropna(subset='smarts_marked').to_csv('data/inner_marked.csv',index=False,sep='\t')
 
-    
+    ################################################################################
+    with open('data/priority_fgs.txt','r')as f:
+        smarts = pd.read_csv(f, delimiter='\t', names=['smarts'])
+    smarts['smarts_marked'] = smarts['smarts'].parallel_apply(marked_ele)
+    smarts = smarts.explode('smarts_marked')
+    smarts['smarts_marked_oxygen'] = smarts['smarts_marked'].parallel_apply(lambda x: add_bridge_to_Hatom(x,3,9))
+    smarts = smarts.explode('smarts_marked_oxygen')
+    smarts.drop_duplicates(inplace=True)
+
+    print("官能团内孤对电子断键数量:", len(smarts.drop_duplicates(subset=['smarts_marked_oxygen']))) #去重不保存
+
+    smarts.dropna(subset='smarts_marked').to_csv('data/ele_marked.csv',index=False,sep='\t')
