@@ -11,7 +11,7 @@ except:
     from modules.atom_mapping import data_process 
 from chem_balancer.main import masterbalance
 from modules.rxn4bond import RXN
-
+from get_ele_bond import LonePairAnalyzer
 
 from tqdm import tqdm
 
@@ -155,7 +155,7 @@ def get_bond(am_sub_list, am_prod_list, consider_broken_inadequacy = False,chang
                     item = list(set(item))
                     broken_each_reactant_list.append(item)
                 else:
-                    broken_each_reactant_list.append(None)
+                    broken_each_reactant_list.append([])
 
             # The bonding of each product
             formed_each_product_list = []
@@ -164,8 +164,17 @@ def get_bond(am_sub_list, am_prod_list, consider_broken_inadequacy = False,chang
                     item = list(set(item))
                     formed_each_product_list.append(item)
                 else:
-                    formed_each_product_list.append(None)
+                    formed_each_product_list.append([])
             
+            #计算孤对电子
+            analyzer = LonePairAnalyzer('.'.join(r_list) + '>>' + '.'.join(p_list))
+            brokenE, formedE = analyzer.result
+
+            broken_each_reactant_list = [a + b for a, b in zip(broken_each_reactant_list, brokenE)]
+            formed_each_product_list = [a + b for a, b in zip(formed_each_product_list, formedE)] 
+            all_broken.extend([y for x in brokenE for y in x])
+            all_formed.extend([y for x in formedE for y in x])
+
             return True, all_broken, all_formed, all_bond_changed, broken_each_reactant_list, formed_each_product_list, rxn
         except Exception as e:
             logger.error("Error occurred while get_bond_change: {}".format(e))
@@ -185,6 +194,7 @@ def process_row(r_smiles:list,p_smiles:list,mapping_tools='RXN', balanced = Fals
         am_prod_mols = [Chem.MolFromSmiles(smiles) for smiles in am_prod_list]
 
         # For am_sub_list and self.am_prod_list, check whether all atoms in the SMILES have an atom mapping. If not, add atom mapping numbers throughout the reaction.        used_numbers = extract_used_numbers(am_sub_mols + am_prod_mols)
+        used_numbers = extract_used_numbers(am_sub_mols + am_prod_mols)
         am_sub_mols, used_numbers = assign_new_numbers(am_sub_mols, used_numbers)
         am_prod_mols, used_numbers = assign_new_numbers(am_prod_mols, used_numbers)
 
@@ -246,7 +256,8 @@ if __name__ == '__main__':
         return pd.Series([confidence, smiles_am,broken_each_reactant_list, formed_each_product_list,all_bond_changed])
     
     #After checkout, recalculate the bond breaking and bonding of atoms.
-    df = pd.read_excel('/data/DPPH断成键3-18.xlsx',sheet_name='去重') #Manually modify the atomic mapping information
+    # df = pd.read_excel('../data/DPPH断成键3-18.xlsx',sheet_name='去重') #Manually modify the atomic mapping information
+    df = pd.read_excel('../data/element_bf_checkout0.xlsx') #手动修改原子映射后
     from pandarallel import pandarallel
     pandarallel.initialize(nb_workers=16,progress_bar=True)
     # df[['broken_each_reactant_list', 'formed_each_product_list','all_bond_changed']] = df['smiles_am'].parallel_apply(get)

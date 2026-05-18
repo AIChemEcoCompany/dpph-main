@@ -24,6 +24,7 @@ fg_inner_H = pd.read_csv('data/H_inner_marked.csv',delimiter='\t')
 fg_inner_broken_formed = pd.read_csv('data/inner_marked.csv',delimiter='\t')
 fg_inner_broken_formed = fg_inner_broken_formed[['smarts', 'smarts_marked']].drop_duplicates()
 fg_inner_broken_formed = fg_inner_broken_formed.groupby('smarts')
+fg_inner_ele = pd.read_csv('data/ele_marked.csv', delimiter='\t')
 fg_fg_df = pd.read_csv('data/type4_construct_fg_fg.csv', delimiter='\t')
 fg_species = json.load(open('data/fg_species.json'))
 
@@ -244,7 +245,39 @@ class BROKEN_FROMED():
                     except Found:
                         continue
                     continue
-                
+                elif "- E" in broken_: #设置参数 算官能团内断键
+                    if not is_inner_broken:
+                        continue
+                    atom1_symbol2 = re.findall('([A-Z].*):\d+', broken_)[0]
+                    atom_ = int(re.findall(':(\d+)', broken_)[0])
+                    try:
+                        idx_ = mapNum_idx[atom_]
+                    except KeyError:
+                        break
+                    try:
+                        for id, row in fg_inner_ele.iterrows():
+                            # s = Chem.MolFromSmarts(row['canon_smarts_masked']) #孤对电子
+                            if pd.isna(row['smarts_marked']):
+                                continue
+                            s = Chem.MolFromSmarts(row['smarts_marked'].replace(r':3', ';H0:3')) #
+                            fg_sites = mol.GetSubstructMatches(s) #包括氢
+                            for fg_site in fg_sites:
+                                if idx_ in fg_site:
+                                    smarts_atom_idx = list(fg_site).index(idx_)
+                                    if s.GetAtomWithIdx(smarts_atom_idx).GetAtomMapNum() == 3 : 
+                                    # self.r1_broken.append((index, fg, broken_, atom1_symbol2, 'SINGLE', 'H'))
+                                        if mode == 'r': #index, fg_bond_smarts, broken_, atom1_symbol, bond, atom2_symbol,smarts1,smarts2
+                                            self.inner_broken.append((index, row['smarts_marked'], broken_, atom1_symbol2, 'SINGLE', 'E',row['smarts'],'[E]'))
+                                            # self.inner_broken.append((index, row['canon_smarts_masked'], broken_, atom1_symbol2, 'SINGLE', 'H'))
+                                        else:
+                                            self.inner_formed.append((index, row['smarts_marked'], broken_, atom1_symbol2, 'SINGLE', 'E',row['smarts'],'[E]'))
+                                            # self.inner_formed.append((index, row['canon_smarts_masked'], broken_, atom1_symbol2, 'SINGLE', 'H'))
+                                        raise Found
+                                    # raise AssertionError('not found')
+                    except Found:
+                        continue
+                    continue
+
                 try:#fg outer 
                     broken = list(map(int, re.findall(':(\d+)', broken_)))
                     atom1, bond_type, atom2 = re.findall('([A-Z].*?):\d+.*?([-=#]|aromatic).*?([A-Z].*?):\d+', broken_)[0] #|dative
@@ -382,6 +415,7 @@ class BROKEN_FROMED():
 def count_fg_freq_classify(df, broken='inner_broken', formed='inner_formed',
                             fg_data_path = 'data/type4_construct_fg_fg.csv',
                             H_data_path='data/H_inner_marked.csv',
+                            ELE_data_path='data/ele_marked.csv',
                             origin_data_path = 'data/inner_marked.csv',
                             ):
 
@@ -407,15 +441,46 @@ def count_fg_freq_classify(df, broken='inner_broken', formed='inner_formed',
     #The inner part is divided into H and non-H.
     if broken == 'inner_broken' and formed == 'inner_formed':
         H_broken, H_formed = defaultdict(int), defaultdict(int)
+        ELE_broken, ELE_formed = defaultdict(int), defaultdict(int)
         for item in list(res_broken_count.keys()):
-            if ':1' not in item: #hydrogen
-                H_broken[item] +=1
+            if ':1' not in item and ':3' not in item: 
+                H_broken[item] += res_broken_count[item]
                 res_broken_count.pop(item)
-        for item in  list(res_formed_count.keys()):
-            if ':1' not in item: #hydrogen
-                H_formed[item] +=1
+            elif ':3' in item: #孤对电子
+                ELE_broken[item] += res_broken_count[item]
+                res_broken_count.pop(item)
+        for item in list(res_formed_count.keys()):
+            if ':1' not in item and ':3' not in item: #氢
+                H_formed[item] += res_formed_count[item]
                 res_formed_count.pop(item)
-                
+            elif ':3' in item:  #孤对电子
+                ELE_formed[item] += res_formed_count[item]
+                res_formed_count.pop(item)
+            
+        #孤对电子
+        ELE_data = pd.read_csv(ELE_data_path, delimiter='\t')
+        mapping = ELE_data.groupby('smarts_marked_oxygen')['smarts_marked'].first().apply(lambda x: ELE_broken.get(x, 0)).to_dict() #  这里已经考虑去重
+        ELE_data['broken_freq'] = ELE_data['smarts_marked_oxygen'].map(mapping)
+        mapping = ELE_data.groupby('smarts_marked_oxygen')['smarts_marked'].first().apply(lambda x: ELE_formed.get(x, 0)).to_dict() #  考虑去重
+        ELE_data['formed_freq'] = ELE_data['smarts_marked_oxygen'].map(mapping)
+        #添加孤对电子分类信息
+        ELE_data['fg1_species'] = ELE_data['smarts'].apply(get_species) 
+        ELE_data['fg2_species'] = '*'
+        ELE_data['fg1'] = ELE_data['smarts']
+        ELE_data['fg2'] = 'E'
+        ELE_data['fg1_fg2'] = ELE_data['smarts']
+        ELE_data['fg1_fg2_marked'] = ELE_data['smarts_marked']
+        ELE_data['bond'] = 'SINGLE'
+        ELE_data['atom1'] = ELE_data['smarts_marked'].apply(lambda row: get_Hatom1(row, m_tag=3))
+        ELE_data['atom2'] = 'E'
+        ELE_data['canon_smarts'] = ELE_data['smarts_marked_oxygen']
+        ELE_data = ELE_data[['fg1', 'fg2', 'fg1_fg2', 'fg1_fg2_marked', 'bond', 'atom1', 'atom2', 'canon_smarts', 
+                    'broken_freq', 'formed_freq' ,'fg1_species','fg2_species']]
+
+        ELE_data.drop_duplicates(subset=['canon_smarts'],inplace=True)
+        ELE_data.to_csv(f"result/{ELE_data_path.split('.')[0].split('/')[1]}_count.csv", sep='\t', index=False)
+        ELE_data.loc[ELE_data['broken_freq'].astype(bool)].to_csv(f"result/{ELE_data_path.split('.')[0].split('/')[1]}_broken_count.csv", sep='\t', index=False)
+        
         H_data = pd.read_csv(H_data_path, delimiter='\t')
         mapping = H_data.groupby('smarts_marked_oxygen')['smarts_inner_marked'].first().apply(lambda x: H_broken.get(x, 0)).to_dict() #  Duplicate removal has already been taken into consideration here.
         H_data['broken_freq'] = H_data['smarts_marked_oxygen'].map(mapping)
@@ -431,7 +496,6 @@ def count_fg_freq_classify(df, broken='inner_broken', formed='inner_formed',
         H_data['bond'] = 'SINGLE'
         H_data['atom1'] = H_data['smarts_inner_marked'].apply(get_Hatom1)
         H_data['atom2'] = 'H'
-        H_data['fg1_fg2_marked'] = H_data['smarts_inner_marked']
         H_data['canon_smarts'] = H_data['smarts_marked_oxygen']
         H_data = H_data[['fg1', 'fg2', 'fg1_fg2', 'fg1_fg2_marked', 'bond', 'atom1', 'atom2', 'canon_smarts', 
                     'broken_freq', 'formed_freq' ,'fg1_species','fg2_species']]
@@ -523,7 +587,7 @@ if __name__ == "__main__":
         count_fg_freq_classify(data,'inner_broken','inner_formed')
         count_fg_freq_classify(data,'outer_broken','outer_formed')
 
-        data = pd.concat([pd.read_csv(f'result/{x}_broken_count.csv',delimiter='\t') for x in ['type4_construct_fg_fg','H_inner_marked','inner_marked']] )
+        data = pd.concat([pd.read_csv(f'result/{x}_broken_count.csv',delimiter='\t') for x in ['type4_construct_fg_fg','H_inner_marked','inner_marked','ele_marked']] )
         del data['formed_freq']
         data.to_csv('result/fg_count.csv',index=False)
 
