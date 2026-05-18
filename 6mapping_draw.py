@@ -6,7 +6,7 @@ import pickle,os
 
 
 
-df_all_bond = pd.concat([pd.read_pickle(f'{x}_add_fp.pickle')for x in ['fg1_fg2','inner','H_inner']])#combined all bond
+df_all_bond = pd.concat([pd.read_pickle(f'{x}_add_fp.pickle')for x in ['fg1_fg2','inner','H_inner','ELE']])#combined all bond
 avail_bond = pd.read_csv('result/represent_fg1_fg2.csv') 
 avail_bond_1044 = avail_bond.loc[avail_bond['is_1044']]  #1044
 # exit(0)
