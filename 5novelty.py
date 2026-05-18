@@ -149,8 +149,13 @@ if __name__ =='__main__':
     #avail bonds sorted
     # inner_novelty_avail = inner_novelty[inner_novelty['fg1_fg2_marked'].isin(avail_bond['fg1_fg2_marked'])]
     
+    ele_inner = pd.read_csv('result/ele_marked_count.csv', delimiter='\t')
+    ele_novelty = run_novelty_pipeline(ele_inner, 'ELE')
+    ele_novelty['type'] = 'ELE'
+    print(len(ele_inner) - len(ele_novelty), 'rest!')
+
     #combined
-    combined_df_novelty = pd.concat([df_fg1_fg2_novelty,H_inner_novelty, inner_novelty])
+    combined_df_novelty = pd.concat([df_fg1_fg2_novelty,H_inner_novelty, inner_novelty, ele_novelty])
     print(len(combined_df_novelty),'rest!')
     combined_df_novelty.drop_duplicates(subset='canon_smarts',inplace=True)
     print('drop_duplicates',len(combined_df_novelty),'rest!')
