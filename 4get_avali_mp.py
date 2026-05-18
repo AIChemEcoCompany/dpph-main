@@ -13,7 +13,7 @@ from utils.get_marked import get_Hatom1, get_inner_ba12, convert_implicit_H, con
 from utils.match_lonely import match_with_lone_pair
 
 class DatabasePool:
-    """数据库连接池管理类"""
+    """Database connection pool management class"""
     def __init__(self, minconn=1, maxconn=5, **kwargs):
         # self.pool = SimpleConnectionPool(minconn, maxconn, **kwargs)
         self.pool = ThreadedConnectionPool(minconn, maxconn, **kwargs)
@@ -28,10 +28,9 @@ class DatabasePool:
 
 def get_avail_mol_pool(df: pd.DataFrame, columns='fg1_fg2', max_workers=3,
                        type_source='3w2', batch_size=500):
-    '''使用连接池的并行批量查询版本
-
-    优化：UNNEST 数组 + CROSS JOIN LATERAL 将大量单行查询合并为批量查询，
-    大幅减少数据库往返次数。batch_size 控制每批处理的 SMARTS 数量。
+    '''Parallel batch query version using connection pool
+    Optimization: UNNEST array + CROSS JOIN LATERAL to merge a large number of single-row queries into batch queries, 
+    significantly reducing the number of database round trips. batch_size controls the number of SMARTS processed per batch.
     '''
 
     db_pool = DatabasePool(
@@ -58,7 +57,7 @@ def get_avail_mol_pool(df: pd.DataFrame, columns='fg1_fg2', max_workers=3,
     results = {}
 
     def process_batch(batch):
-        """处理一批 SMARTS，返回 {smarts: [smiles...]}"""
+        """deal batch SMARTS, retrun {smarts: [smiles...]}"""
         batch_results = {}
         try:
             with db_pool.get_connection() as conn:
@@ -138,7 +137,7 @@ def uniform_format(df_:pd.DataFrame, type_ = 'H_inner', mol_source:Literal['3w2'
         ELE_inner = get_avail_mol_pool(ELE_inner, 'smarts_add_H0',type_source= mol_source) 
         del ELE_inner['smarts_add_H0']
         
-        #进一步处理
+        #further deal
         ELE_inner = ELE_inner.loc[ELE_inner['avail'].astype(bool)]
         ELE_inner_ex = ELE_inner.explode('avail')
         
@@ -146,7 +145,7 @@ def uniform_format(df_:pd.DataFrame, type_ = 'H_inner', mol_source:Literal['3w2'
         ELE_inner_ex['lonely'] = ELE_inner_ex.apply(lambda row:match_with_lone_pair(row['mol'], row['fg1_fg2_marked']), axis=1)
         ELE_inner_ex = ELE_inner_ex.loc[ELE_inner_ex['lonely'].astype(bool)]
         ELE_inner_ex = ELE_inner_ex.groupby(by='fg1_fg2_marked')['avail'].apply(list).reset_index()
-        #合并
+        #combine
         ELE_inner.drop(columns=['avail'],inplace=True)
         ELE_inner = ELE_inner.merge(ELE_inner_ex,on='fg1_fg2_marked',how='right') 
         ELE_inner = ELE_inner[['fg1', 'fg2', 'fg1_fg2', 'fg1_fg2_marked', 'bond', 'atom1', 'atom2', 'canon_smarts','avail']]
@@ -237,8 +236,7 @@ if __name__ == '__main__':
         inner = pd.read_csv(f'{save_path}/dpph_inner_matched_{source}.csv')
         H_inner = pd.read_csv(f'{save_path}/dpph_Hinner_matched_{source}.csv')
         ele_lonely = pd.read_csv(f'{save_path}/dpph_ele_lonely_matched_{source}.csv')
-        combined_df = pd.concat([df_fg1_fg2, inner, H_inner, ele_lonely]) #, ele_lonely
-        # combined_df = pd.concat([ inner, H_inner]) 
+        combined_df = pd.concat([df_fg1_fg2, inner, H_inner, ele_lonely]) 
         combined_df['mol_source'] = source
         combined_df.to_csv(f'{save_path}/combined_df_{source}.csv',index=False)
     #优先
