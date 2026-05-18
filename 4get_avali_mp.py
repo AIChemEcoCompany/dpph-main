@@ -196,7 +196,8 @@ def uniform_format(df_:pd.DataFrame, type_ = 'H_inner', mol_source:Literal['3w2'
         return inner
 
 if __name__ == '__main__':
-    # #官能团内断成键
+
+    # #bf of bonds within functional groups
     fgs = pd.read_csv('data/priority_fgs.txt',header=None,delimiter='\t')
     H_inner0 = pd.read_csv('data/H_inner_marked.csv', delimiter='\t')
     inner0 = pd.read_csv('data/inner_marked.csv',delimiter='\t')
