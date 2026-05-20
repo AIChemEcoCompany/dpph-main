@@ -11,7 +11,7 @@ except:
     from modules.atom_mapping import data_process 
 from chem_balancer.main import masterbalance
 from modules.rxn4bond import RXN
-from get_ele_bond import LonePairAnalyzer
+from .get_ele_bond import LonePairAnalyzer
 
 from tqdm import tqdm
 
